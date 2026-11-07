@@ -4,13 +4,13 @@ NOTICE
 dualshock2xbox includes a small port of the stick-shaping pipeline
 (deadzone / anti-deadzone / max-zone) from DS4Windows:
 
-    DS4Windows - https://github.com/Ryochan7/DS4Windows
+    DS4Windows - https://github.com/hbashton/DS4Windows (Ryochan7's is no longer available)
     Copyright (c) the DS4Windows contributors
     Licensed under the GNU General Public License v3.0 (GPL-3.0)
 
 That port lives in src/ds4w_shaping.{hpp,cpp}. Under GPL-3.0, any
 derivative work must be distributed under GPL-3.0 as well, so this project
-as a whole is now GPL-3.0. See installer/License.txt.
+as a whole is distributed under GPL-3.0.
 
 Everything else in this repository (report parsing, mapping, output reports,
-test mode, installer) is original work.
+test mode) is original work.
