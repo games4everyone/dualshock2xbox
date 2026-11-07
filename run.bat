@@ -2,6 +2,10 @@
 setlocal
 title dualshock2xbox
 
+REM "run as administrator" starts in C:\Windows\System32, where nothing of ours lives
+REM (no exe, no settings.ini). go to the folder this file is in first.
+cd /d "%~dp0"
+
 REM double-click me. finds the exe, runs it, and keeps the window open on exit
 REM so error messages don't vanish into the void.
 
