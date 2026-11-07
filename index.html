@@ -303,13 +303,14 @@ yaw turns the right stick and pitch looks up/down, like a mouse.</p>
 ported from <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a>
 (also GPL-3.0); see NOTICE.txt in the download.</p>
   </div>
+</div>
 <script>
 (function () {
   var links = document.querySelectorAll('nav a[data-page]');
   function show(id) {
     document.getElementById('page-home').style.display = (id === 'page-home') ? '' : 'none';
     document.getElementById('home-buttons').style.display = (id === 'page-home') ? '' : 'none';
-    var divs = document.querySelectorAll('div[hidden]');
+    var divs = document.querySelectorAll('div[id^="page-"]');
     for (var i = 0; i < divs.length; i++) divs[i].hidden = (divs[i].id !== id);
     window.scrollTo(0, 0);
   }
@@ -319,5 +320,5 @@ ported from <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a>
   document.querySelector('nav a[href="index.html"]').addEventListener('click', function (e) { e.preventDefault(); show('page-home'); });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fd95b0ab70da6',t:'MTc5NDA5MTMyNA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fd95b0ab70da6',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fe70e9f210b1b',t:'MTc5NDA5MTg4NQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fe70e9f210b1b',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
