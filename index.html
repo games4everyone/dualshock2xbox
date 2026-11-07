@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dualshock2xbox</title>
+<title>dualshock2xbox; use your PlayStation controller on PC</title>
 <style>
   :root { --blue: #0b3d91; --blue2: #1565c0; --ink: #eaf2ff; --muted: #b9cff2; }
   html, body { margin: 0; padding: 0; }
@@ -52,14 +52,14 @@
 <header>
   <h1><a href="index.html">dualshock2xbox</a></h1>
   <p class="tag">Play Windows games with a DualShock 4 or DualSense (PS5) controller.</p>
-  <nav><a href="index.html" class="cur">Home</a> <a href="start.html">Start</a> <a href="features.html">Features</a> <a href="mapping.html">Mapping</a> <a href="settings.html">Settings</a> <a href="docs.html">Docs</a> <a href="faq.html">FAQ</a></nav>
+  <nav><a href="index.html" class="cur">Home</a> <a href="#" data-page="page-start">Start</a> <a href="#" data-page="page-features">Features</a> <a href="#" data-page="page-mapping">Mapping</a> <a href="#" data-page="page-settings">Settings</a> <a href="#" data-page="page-docs">Docs</a> <a href="#" data-page="page-faq">FAQ</a></nav>
 </header>
 <div class="wrap">
-  <div class="dlrow">
+  <div class="dlrow" id="home-buttons">
     <a class="dl" href="https://github.com/games4everyone/dualshock2xbox/releases">Download for Windows</a>
     <a class="dl ghost" href="https://github.com/games4everyone/dualshock2xbox">Source on GitHub</a>
   </div>
-  <div class="page">
+  <div class="page" id="page-home">
     <h2>What is this?</h2>
     <p>Got a PlayStation controller and a PC game that only wants an Xbox pad?
     This little program sits in between: it reads your DualShock 4 or DualSense
@@ -303,5 +303,21 @@ yaw turns the right stick and pitch looks up/down, like a mouse.</p>
 ported from <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a>
 (also GPL-3.0); see NOTICE.txt in the download.</p>
   </div>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fd5499bc2e022',t:'MTc5NDA5MTE1OA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fd5499bc2e022',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+(function () {
+  var links = document.querySelectorAll('nav a[data-page]');
+  function show(id) {
+    document.getElementById('page-home').style.display = (id === 'page-home') ? '' : 'none';
+    document.getElementById('home-buttons').style.display = (id === 'page-home') ? '' : 'none';
+    var divs = document.querySelectorAll('div[hidden]');
+    for (var i = 0; i < divs.length; i++) divs[i].hidden = (divs[i].id !== id);
+    window.scrollTo(0, 0);
+  }
+  for (var i = 0; i < links.length; i++) {
+    links[i].addEventListener('click', function (e) { e.preventDefault(); show(this.getAttribute('data-page')); });
+  }
+  document.querySelector('nav a[href="index.html"]').addEventListener('click', function (e) { e.preventDefault(); show('page-home'); });
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fd95b0ab70da6',t:'MTc5NDA5MTMyNA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fd95b0ab70da6',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
