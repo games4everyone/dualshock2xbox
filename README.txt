@@ -20,9 +20,7 @@ DualShock 4 / DualSense --HID--> parse raw report --> map to Xbox layout --> ViG
 
 Prebuilt Windows exe
 
-No compiler needed: dist-windows/ has a ready-to-run dualshock2xbox.exe
-(64-bit, cross-compiled) plus an NSIS installer dualshock2xbox-setup.exe
-(built from installer/dualshock2xbox.nsi with makensis) that installs to
+No compiler needed: Releases has a ready-to-run dualshock2xbox-setup.exe that installs to
 Program Files with Start Menu/Desktop shortcuts and can install the ViGEmBus
 driver via winget. Without the installer: run setup.ps1 once, keep
 hidapi.dll next to the exe, then double-click run.bat. The exe loads
