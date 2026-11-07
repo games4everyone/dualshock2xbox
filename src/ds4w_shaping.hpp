@@ -4,7 +4,7 @@
 
 namespace ds2x {
 
-// Stick shaping pipeline ported from DS4Windows (https://github.com/Ryochan7/DS4Windows,
+// Stick shaping pipeline ported from DS4Windows (https://github.com/hbashton/DS4Windows,
 // GPL-3.0), specifically the axis-config behavior: inner deadzone, then
 // anti-deadzone (raises the output floor so tiny inputs clear a game's own
 // deadzone), then max-zone (a worn stick that only reaches e.g. 0.9 still
