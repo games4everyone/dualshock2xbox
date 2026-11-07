@@ -123,3 +123,36 @@ void test_transport_from_path() {
     CHECK(transport_from_path(nullptr) == Transport::Usb);
     CHECK(transport_from_path("") == Transport::Usb);
 }
+
+// a wrong guess from the device path must not make a bluetooth pad look dead:
+// the report id decides the layout
+void test_dualsense_bt_ignores_wrong_transport_hint() {
+    std::vector<std::uint8_t> bt(78, 0);
+    bt[0] = 0x31; bt[1] = 0x01;
+    bt[2] = 77; bt[3] = 88; bt[6] = 99;  // lx, ly, l2
+    auto s = parse_report(Device::DualSense, Transport::Usb, bt.data(), bt.size());  // hint says USB
+    CHECK(s.has_value() && s->lx == 77 && s->ly == 88 && s->l2 == 99);
+
+    // and the 10-byte simple report is simple whatever the hint says
+    std::vector<std::uint8_t> simple(10, 0);
+    simple[0] = 0x01; simple[1] = 11; simple[2] = 22; simple[8] = 33;  // lx, ly, l2 (DS4 layout)
+    auto t = parse_report(Device::DualSense, Transport::Usb, simple.data(), simple.size());
+    CHECK(t.has_value() && t->lx == 11 && t->ly == 22 && t->l2 == 33);
+}
+
+void test_transport_from_report() {
+    std::vector<std::uint8_t> r(78, 0);
+    r[0] = 0x11; CHECK(transport_from_report(r.data(), r.size()) == Transport::Bluetooth);
+    r[0] = 0x31; CHECK(transport_from_report(r.data(), r.size()) == Transport::Bluetooth);
+    std::vector<std::uint8_t> usb(64, 0); usb[0] = 0x01;
+    CHECK(transport_from_report(usb.data(), usb.size()) == Transport::Usb);
+    std::vector<std::uint8_t> simple(10, 0); simple[0] = 0x01;
+    CHECK(transport_from_report(simple.data(), simple.size()) == Transport::Bluetooth);
+    std::vector<std::uint8_t> junk(4, 0); junk[0] = 0x7F;
+    CHECK(!transport_from_report(junk.data(), junk.size()).has_value());
+    CHECK(!transport_from_report(nullptr, 0).has_value());
+
+    // real windows bluetooth HID paths carry the HID service uuid, not "BTH"
+    CHECK(transport_from_path("\\\\?\\hid#{00001124-0000-1000-8000-00805f9b34fb}_vid&0002054c_pid&09cc#a&1b2c&0&0000#{4d1e55b2}") == Transport::Bluetooth);
+    CHECK(transport_from_path("\\\\?\\hid#vid_054c&pid_09cc&col01#7&abc&0&0000#{4d1e55b2}") == Transport::Usb);
+}

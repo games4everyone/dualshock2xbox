@@ -43,12 +43,22 @@ struct XboxState {
 };
 
 // PlayStation state -> Xbox state. deadzone is a fraction of full deflection.
-// gyro_gain > 0 folds the gyro into the right stick (gz = yaw -> X, gy = pitch -> Y),
-// like a mouse ; 0 disables it.
-// anti_deadzone and max_zone come from the DS4Windows-derived shaping
+// gyro_gain > 0 folds the gyro into the right stick like a mouse (yaw -> X,
+// pitch -> Y) ; 0 disables it. Sony's report order is pitch, yaw, roll, so
+// PadState::gx is pitch, gy is yaw and gz is roll (roll is not used).
+// gyro_invert_yaw / gyro_invert_pitch flip a direction that feels backwards on
+// your setup, no recompiling needed.
+// anti_deadzone and max_zone come from the stick shaping
 // (see ds4w_shaping.hpp) ; defaults keep the plain deadzone behavior
 XboxState map_state(const PadState& pad, float deadzone = 0.08f, float gyro_gain = 0.0f,
                     const Remap& remap = default_remap(), float anti_deadzone = 0.0f,
-                    float max_zone = 1.0f);
+                    float max_zone = 1.0f, bool gyro_invert_yaw = false,
+                    bool gyro_invert_pitch = false);
+
+// float -> XUSB report units, rounded to nearest and clamped. (plain truncation
+// turned 1.0f computed as 0.99999994f into 254 / 32766, so full deflection
+// could be one count short.)
+std::uint8_t to_xusb_trigger(float t);   // 0..1  -> 0..255
+std::int16_t to_xusb_axis(float v);      // -1..1 -> -32767..32767
 
 } // namespace ds2x

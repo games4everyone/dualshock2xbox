@@ -31,7 +31,8 @@ public:
                     if (dev_) {
                         hid_set_nonblocking(dev_, 1);
                         pid_ = pid;
-                        transport_ = transport_from_path(it->path);
+                        transport_ = transport_from_path(it->path);  // a guess ; read() corrects it
+                        ++generation_;
                         if (transport_ == Transport::Bluetooth)
                             switch_to_full_report();
                         hid_free_enumeration(list);
@@ -49,14 +50,17 @@ public:
 
     std::optional<std::vector<std::uint8_t>> read() override {
         if (!dev_) return std::nullopt;
-        std::uint8_t buf[64];
+        // bluetooth full reports are 78 bytes ; a 64-byte buffer would truncate them
+        std::uint8_t buf[128];
         int n = hid_read(dev_, buf, sizeof(buf));
         if (n < 0) { alive_ = false; return std::nullopt; }  // device gone
         if (n == 0) return std::nullopt;  // non-blocking: nothing new
+        observe_transport(buf, static_cast<std::size_t>(n));
         return std::vector<std::uint8_t>(buf, buf + n);
     }
 
     bool alive() const override { return alive_; }
+    unsigned generation() const override { return generation_; }
 
     bool write_output(const std::vector<std::uint8_t>& report) override {
         if (!dev_) return false;
@@ -74,11 +78,34 @@ private:
     // reading a calibration feature report flips them to the full report
     // (DS4: 0x11, DualSense: 0x31) with gyro and everything else. this is the
     // part every tutorial skips, and without it BT pads look half dead.
+    //
+    // which feature report does the trick differs between pads and firmware, and
+    // asking for one a pad doesn't have is harmless, so ask for the usual
+    // suspects: calibration (DS4 0x02 / BT-only 0x05, DualSense 0x05) and, for the
+    // DualSense, firmware info (0x20). (not verified on every firmware: if a
+    // pad stays in simple mode over BT, this is the place to look.)
     void switch_to_full_report() {
-        std::uint8_t buf[64] = {};
-        buf[0] = (device() == Device::DualShock4) ? 0x02 : 0x20;
-        int n = hid_get_feature_report(dev_, buf, sizeof(buf));
-        (void)n;  // the read itself is what triggers the switch ; result unused
+        const std::uint8_t ds4_ids[] = {0x02, 0x05};
+        const std::uint8_t ds5_ids[] = {0x05, 0x20};
+        const bool ds4 = device() == Device::DualShock4;
+        const std::uint8_t* ids = ds4 ? ds4_ids : ds5_ids;
+        for (int i = 0; i < 2; ++i) {
+            std::uint8_t buf[128] = {};
+            buf[0] = ids[i];
+            (void)hid_get_feature_report(dev_, buf, sizeof(buf));  // the read is the trigger ; result unused
+        }
+    }
+
+    // the device path is only a hint about the transport ; the first report
+    // is the proof (0x11 / 0x31 exist only over BT, a 64-byte 0x01 is USB)
+    void observe_transport(const std::uint8_t* data, std::size_t len) {
+        auto t = transport_from_report(data, len);
+        if (!t || *t == transport_) return;
+        transport_ = *t;
+        ++generation_;
+        std::cout << "this pad is actually on " << (transport_ == Transport::Bluetooth ? "bluetooth" : "usb")
+                  << " ; adjusting\n";
+        if (transport_ == Transport::Bluetooth) switch_to_full_report();
     }
 
     void close() {
@@ -90,6 +117,7 @@ private:
     std::uint16_t pid_ = 0;
     Transport transport_ = Transport::Usb;
     bool alive_ = true;
+    unsigned generation_ = 0;
     std::string name_ = "pad";
 };
 

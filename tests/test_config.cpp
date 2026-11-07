@@ -55,3 +55,66 @@ void test_profiles() {
     CHECK(cfg.hz == 500 && cfg.gyro);
     std::filesystem::remove_all("test_profiles_tmp");
 }
+
+// typos and nonsense must neither crash nor sneak past silently
+void test_config_sanitize() {
+    const char* path = "test_settings_bad_tmp.ini";
+    {
+        std::FILE* f = std::fopen(path, "wb");
+        // starts with a UTF-8 BOM, like notepad likes to do
+        std::fputs("\xEF\xBB\xBFhz=abc\ndeadzon=0.3\ndeadzone=7\nlightbar=300,-5,20\n"
+                   "gyro_invert_yaw=1\nmax_zone=0\nplayer_led=9\ntrigger_start=-3\n", f);
+        std::fclose(f);
+    }
+    Config cfg;
+    CHECK(load_config(path, cfg));
+    CHECK(cfg.hz == 250);                         // "abc" ignored, default kept, no crash
+    CHECK(cfg.lightbar && cfg.lr == 255 && cfg.lg == 0 && cfg.lb == 20);  // clamped, not wrapped
+    CHECK(cfg.gyro_invert_yaw && !cfg.gyro_invert_pitch);
+    CHECK(std::fabs(cfg.deadzone - 7.0f) < 1e-6);  // the file said 7 ...
+    int fixed = sanitize_config(cfg);
+    CHECK(fixed == 3);                            // ... deadzone, max_zone, trigger_start
+    CHECK(cfg.deadzone <= 0.95f && cfg.max_zone >= 0.1f);
+    CHECK(cfg.player_led == 0 && cfg.trigger_start == 0);  // player_led=9 is refused at parse time
+
+    Config zero;
+    zero.hz = 0;
+    CHECK(sanitize_config(zero) == 1 && zero.hz == 30);  // hz 0 would have been a division by zero
+    Config fine;
+    CHECK(sanitize_config(fine) == 0);             // sane defaults pass untouched
+    std::remove(path);
+}
+
+void test_profile_lookup_next_to_exe() {
+    namespace fs = std::filesystem;
+    const fs::path dir = "test_exe_dir_tmp";
+    fs::create_directories(dir / "profiles");
+    {
+        std::FILE* f = std::fopen((dir / "settings.ini").string().c_str(), "w");
+        std::fputs("hz=333\n", f);
+        std::fclose(f);
+        f = std::fopen((dir / "profiles" / "fps.ini").string().c_str(), "w");
+        std::fputs("hz=444\n", f);
+        std::fclose(f);
+    }
+    // run from an empty directory (the repo root has its own settings.ini), so
+    // only the exe-relative lookup can find these
+    const fs::path old_cwd = fs::current_path();
+    fs::create_directories("test_cwd_tmp");
+    const fs::path abs_dir = fs::absolute(dir);
+    fs::current_path("test_cwd_tmp");
+    Config a;
+    CHECK(!load_profile("", a));
+    CHECK(load_profile("", a, abs_dir.string()) && a.hz == 333);
+    Config b;
+    CHECK(load_profile("fps", b, abs_dir.string()) && b.hz == 444);
+    Config c;
+    CHECK(!load_profile("nope", c, abs_dir.string()));
+    fs::current_path(old_cwd);
+    fs::remove_all("test_cwd_tmp");
+
+    CHECK(exe_dir_from_argv0("C:/games/ds2x/dualshock2xbox.exe") == "C:/games/ds2x");
+    CHECK(exe_dir_from_argv0("dualshock2xbox").empty());
+    CHECK(exe_dir_from_argv0(nullptr).empty());
+    fs::remove_all(dir);
+}

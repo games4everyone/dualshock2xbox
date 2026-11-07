@@ -11,6 +11,8 @@ namespace ds2x {
 // standard CRC-32 (zlib flavour: poly 0xEDB88320, init/xorout 0xFFFFFFFF).
 // sony's bluetooth frames want this over 0xA2 + report bytes.
 std::uint32_t crc32(const std::uint8_t* data, std::size_t len);
+// incremental form: start from 0xFFFFFFFF, feed chunks, finish with ~state
+std::uint32_t crc32_update(std::uint32_t state, const std::uint8_t* data, std::size_t len);
 
 // rumble output reports. weak = small/high-frequency motor, strong = large one.
 // BT variants append the CRC trailer; `seq` is the BT sequence nibble and is

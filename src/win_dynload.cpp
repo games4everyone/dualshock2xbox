@@ -82,6 +82,43 @@ bool load() {
     return true;
 }
 
+// --- timer resolution --------------------------------------------------------
+typedef unsigned int (WINAPI *TimePeriodFn)(unsigned int);  // winmm is __stdcall
+static TimePeriodFn g_time_begin = nullptr;
+static TimePeriodFn g_time_end = nullptr;
+static bool g_timer_raised = false;
+
+void begin_high_res_timer() {
+    if (g_timer_raised) return;
+    HMODULE winmm = LoadLibraryA("winmm.dll");
+    if (!winmm) return;  // not fatal ; sleeps are just coarser
+    g_time_begin = reinterpret_cast<TimePeriodFn>(GetProcAddress(winmm, "timeBeginPeriod"));
+    g_time_end = reinterpret_cast<TimePeriodFn>(GetProcAddress(winmm, "timeEndPeriod"));
+    if (g_time_begin && g_time_end) { g_time_begin(1); g_timer_raised = true; }
+}
+
+void end_high_res_timer() {
+    if (g_timer_raised && g_time_end) g_time_end(1);
+    g_timer_raised = false;
+}
+
+// --- clean shutdown ----------------------------------------------------------
+static std::atomic<bool>* g_quit_flag = nullptr;
+
+static BOOL WINAPI on_console_event(DWORD type) {
+    if (g_quit_flag) g_quit_flag->store(true);
+    // for close / logoff / shutdown Windows kills the process as soon as we
+    // return, so hold on briefly to let the main loop tidy up
+    if (type == CTRL_CLOSE_EVENT || type == CTRL_LOGOFF_EVENT || type == CTRL_SHUTDOWN_EVENT)
+        Sleep(2000);
+    return TRUE;
+}
+
+void install_quit_handler(std::atomic<bool>* flag) {
+    g_quit_flag = flag;
+    SetConsoleCtrlHandler(on_console_event, TRUE);
+}
+
 } // namespace ds2x::win
 
 #endif // DS2X_WINDOWS

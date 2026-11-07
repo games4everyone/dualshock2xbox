@@ -8,8 +8,16 @@
 
 #ifdef DS2X_WINDOWS
 
+#include <atomic>
 #include <cstdint>
 #include <string>
+
+// the callbacks ViGEmClient calls are __stdcall on 32-bit Windows, plain on x64
+#if defined(_M_IX86) || defined(__i386__)
+#define DS2X_CALLBACK __stdcall
+#else
+#define DS2X_CALLBACK
+#endif
 
 namespace ds2x::win {
 
@@ -71,7 +79,7 @@ typedef struct {
     BYTE bLeftTrigger, bRightTrigger;
     SHORT sThumbLX, sThumbLY, sThumbRX, sThumbRY;
 } XUSB_REPORT;
-typedef VOID (*VIGEM_X360_NOTIFICATION)(PVIGEM_CLIENT, PVIGEM_TARGET, UCHAR, UCHAR, UCHAR, PVOID);
+typedef VOID (DS2X_CALLBACK *VIGEM_X360_NOTIFICATION)(PVIGEM_CLIENT, PVIGEM_TARGET, UCHAR, UCHAR, UCHAR, PVOID);
 
 typedef PVIGEM_CLIENT (*VigemAllocFn)(void);
 typedef void (*VigemFreeFn)(PVIGEM_CLIENT);
@@ -98,6 +106,16 @@ extern VigemRegisterNotificationFn vigem_target_x360_register_notification;
 // load both DLLs and resolve every symbol ; false + last_error() on failure
 bool load();
 std::string last_error();
+
+// Windows sleeps in ~15 ms steps by default, which would wreck a 250 Hz loop.
+// these raise the timer resolution to 1 ms (winmm is loaded at runtime, so the
+// exe still links against nothing extra) and put it back.
+void begin_high_res_timer();
+void end_high_res_timer();
+
+// Ctrl+C / closing the console window sets *flag, so the main loop can stop
+// rumble and remove the virtual pad instead of just vanishing
+void install_quit_handler(std::atomic<bool>* flag);
 
 } // namespace ds2x::win
 

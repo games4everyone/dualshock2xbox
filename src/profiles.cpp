@@ -27,8 +27,17 @@ std::string resolve_profile_path(const std::string& name, const std::string& dir
     return dir + "/" + name + ".ini";
 }
 
-bool load_profile(const std::string& name, Config& cfg) {
-    return load_config(resolve_profile_path(name), cfg);
+bool load_profile(const std::string& name, Config& cfg, const std::string& base_dir) {
+    const std::string rel = resolve_profile_path(name);
+    if (load_config(rel, cfg)) return true;
+    if (!base_dir.empty() && !std::filesystem::path(rel).is_absolute())
+        return load_config((std::filesystem::path(base_dir) / rel).string(), cfg);
+    return false;
+}
+
+std::string exe_dir_from_argv0(const char* argv0) {
+    if (!argv0 || !*argv0) return "";
+    return std::filesystem::path(argv0).parent_path().string();
 }
 
 } // namespace ds2x

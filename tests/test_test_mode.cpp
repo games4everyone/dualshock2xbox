@@ -48,3 +48,41 @@ void test_server_handle() {
 
     CHECK(srv.handle("GET", "/nope").find("404") != std::string::npos);
 }
+
+// the GUI must only answer this machine, and only pages served by itself
+void test_server_rejects_strangers() {
+    // hosts
+    CHECK(is_local_request("localhost:8080", ""));
+    CHECK(is_local_request("127.0.0.1:8080", ""));
+    CHECK(is_local_request("[::1]:8080", ""));
+    CHECK(is_local_request("LocalHost", ""));
+    CHECK(!is_local_request("", ""));                       // no Host header at all
+    CHECK(!is_local_request("evil.example", ""));
+    CHECK(!is_local_request("localhost.evil.example", ""));  // dns-rebinding lookalike
+    CHECK(!is_local_request("127.0.0.1.evil.example:80", ""));
+    CHECK(!is_local_request("192.168.1.20:8080", ""));
+    CHECK(!is_local_request("localhost:80x", ""));
+    // origins: a cross-site POST from any web page carries its own Origin
+    CHECK(is_local_request("localhost:8080", "http://localhost:8080"));
+    CHECK(is_local_request("127.0.0.1:8080", "http://127.0.0.1:8080"));
+    CHECK(!is_local_request("localhost:8080", "https://evil.example"));
+    CHECK(!is_local_request("localhost:8080", "http://evil.example"));
+    CHECK(!is_local_request("localhost:8080", "null"));       // sandboxed iframes send this
+
+    TestServer srv;
+    auto bad = srv.handle("POST", "/key?k=w&down=1", "localhost:8080", "https://evil.example");
+    CHECK(bad.find("403") != std::string::npos);
+    CHECK(srv.keys().find("w") == srv.keys().end() || srv.keys().at("w") == false);  // nothing was pressed
+    auto rebind = srv.handle("GET", "/last", "attacker.example:8080", "");
+    CHECK(rebind.find("403") != std::string::npos);
+    auto good = srv.handle("POST", "/key?k=w&down=1", "localhost:8080", "http://localhost:8080");
+    CHECK(good.find("204") != std::string::npos && srv.keys().at("w") == true);
+}
+
+void test_map_names_are_readable() {
+    TestServer srv;
+    auto map = srv.handle("GET", "/map");
+    CHECK(map.find("xbox#") == std::string::npos);                 // no raw bit numbers
+    CHECK(map.find("\"ps\":\"cross\",\"xb\":\"a\"") != std::string::npos);  // cross -> a, spelled out
+    CHECK(map.find("LT (trigger)") != std::string::npos);          // l2 is a trigger, not a stick
+}

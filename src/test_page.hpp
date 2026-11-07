@@ -72,19 +72,44 @@ function drawPad(svgId, defs, lit) {
     t.setAttribute("text-anchor","middle"); t.textContent = d.n; svg.appendChild(t);
   }
 }
-function psLit(k){ return !!state[k]; }
+// the left pad is drawn from the keys you hold. PS_KEY maps a pad element
+// ("cross") to the keyboard keys that drive it, filled from /map ; PS_ALIAS
+// bridges the drawing names to the mapping names.
+const PS_ALIAS = {touch:"touchpad", ls:"l3", rs:"r3"};
+const STICK_KEYS = {ls:["lstick_up","lstick_down","lstick_left","lstick_right"],
+                    rs:["rstick_up","rstick_down","rstick_left","rstick_right"]};
+function held(effect){ return (PS_KEY[effect]||[]).some(key=>state[key]); }
+function psLit(k){
+  if (k==="dpad") return ["dpad_up","dpad_down","dpad_left","dpad_right"].some(held);
+  const e = PS_ALIAS[k]||k;
+  if (STICK_KEYS[k] && STICK_KEYS[k].some(held)) return true;  // stick pushed
+  return held(e);
+}
 function xbLit(k){
-  if (k==="dpad") return false;
+  if (k==="dpad") return !!(lastXb.buttons & 0x000f);
+  if (k==="ls" && (Math.abs(lastXb.lx)>0.05||Math.abs(lastXb.ly)>0.05)) return true;
+  if (k==="rs" && (Math.abs(lastXb.rx)>0.05||Math.abs(lastXb.ry)>0.05)) return true;
+  if (k==="lt") return lastXb.lt>0.05;
+  if (k==="rt") return lastXb.rt>0.05;
   return !!(lastXb.buttons & (XB_BIT[k]||0));
 }
 let lastXb = {buttons:0};
 fetch("/map").then(r=>r.json()).then(m=>{
   const tbl = document.getElementById("map");
   for (const k in m){ const tr=document.createElement("tr");
-    tr.innerHTML = `<td class="k">${k}</td><td>${m[k].ps}</td><td>${m[k].xb}</td>`; tbl.appendChild(tr); }
+    (PS_KEY[m[k].ps] = PS_KEY[m[k].ps] || []).push(k);
+    // textContent, not innerHTML: key names are data, never markup
+    for (const v of [k===" "?"space":k, m[k].ps, m[k].xb]) { const td=document.createElement("td"); td.textContent=v; tr.appendChild(td); }
+    tr.firstChild.className="k"; tbl.appendChild(tr); }
+  drawPad("ps",PS,psLit);
 });
-window.addEventListener("keydown", e=>{ if(e.repeat) return; send(e.key,true); });
-window.addEventListener("keyup", e=>send(e.key,false));
+// shift turns "w" into "W", and the keyup would then release a different key
+// than the keydown pressed (a stuck stick) ; fold letters to lower case
+const norm = k => (k.length===1 ? k.toLowerCase() : k);
+window.addEventListener("keydown", e=>{ if(e.repeat) return; if(e.key===" ") e.preventDefault(); send(norm(e.key),true); });
+window.addEventListener("keyup", e=>send(norm(e.key),false));
+// switching tabs while holding a key never delivers the keyup ; let go of everything
+window.addEventListener("blur", ()=>{ for (const k in state) if (state[k]) send(k,false); });
 function send(k,down){ state[k]=down; fetch(`/key?k=${encodeURIComponent(k)}&down=${down?1:0}`,{method:"POST"}).catch(()=>{});
   drawPad("ps",PS,psLit); }
 setInterval(()=>{ fetch("/last").then(r=>r.json()).then(j=>{ lastXb=j; drawPad("xb",XB,xbLit);

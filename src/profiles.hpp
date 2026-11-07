@@ -19,7 +19,14 @@ std::vector<std::string> list_profiles(const std::string& dir = kProfileDir);
 std::string resolve_profile_path(const std::string& name,
                                  const std::string& dir = kProfileDir);
 
-// load a profile by name into cfg ; missing file keeps defaults, returns false
-bool load_profile(const std::string& name, Config& cfg);
+// load a profile by name into cfg ; missing file keeps defaults, returns false.
+// the file is looked up relative to the current directory first, then relative
+// to base_dir (pass the exe's folder: a Start Menu shortcut or "run as admin"
+// often starts the program somewhere else, and settings.ini would silently
+// not be found).
+bool load_profile(const std::string& name, Config& cfg, const std::string& base_dir = "");
+
+// the directory part of argv[0] (empty if it has none)
+std::string exe_dir_from_argv0(const char* argv0);
 
 } // namespace ds2x

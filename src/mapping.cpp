@@ -47,7 +47,8 @@ bool parse_remap(const std::string& ps_name, const std::string& xbox_name, Remap
 }
 
 XboxState map_state(const PadState& pad, float deadzone, float gyro_gain, const Remap& remap,
-                    float anti_deadzone, float max_zone) {
+                    float anti_deadzone, float max_zone, bool gyro_invert_yaw,
+                    bool gyro_invert_pitch) {
     XboxState out;
 
     out.lx = axis(pad.lx);
@@ -59,10 +60,13 @@ XboxState map_state(const PadState& pad, float deadzone, float gyro_gain, const 
     shape_stick(out.lx, out.ly, shaping);
     shape_stick(out.rx, out.ry, shaping);
 
-    // gyro on top of the right stick, clamped ; yaw turns you, pitch looks up/down
+    // gyro on top of the right stick, clamped ; yaw turns you, pitch looks up/down.
+    // sony reports the axes as pitch (gx), yaw (gy), roll (gz) ; roll is ignored.
     if (gyro_gain > 0.0f) {
-        out.rx = clamp1(out.rx + (pad.gz / 32767.0f) * gyro_gain);
-        out.ry = clamp1(out.ry - (pad.gy / 32767.0f) * gyro_gain);
+        const float yaw = (pad.gy / 32767.0f) * gyro_gain * (gyro_invert_yaw ? -1.0f : 1.0f);
+        const float pitch = (pad.gx / 32767.0f) * gyro_gain * (gyro_invert_pitch ? -1.0f : 1.0f);
+        out.rx = clamp1(out.rx + yaw);
+        out.ry = clamp1(out.ry - pitch);
     }
 
     out.lt = pad.l2 / 255.0f;
@@ -85,6 +89,18 @@ XboxState map_state(const PadState& pad, float deadzone, float gyro_gain, const 
         default: break;  // 8 = released
     }
     return out;
+}
+
+std::uint8_t to_xusb_trigger(float t) {
+    if (!(t > 0.0f)) return 0;  // also catches NaN
+    if (t >= 1.0f) return 255;
+    return static_cast<std::uint8_t>(std::lround(t * 255.0f));
+}
+
+std::int16_t to_xusb_axis(float v) {
+    if (!(v > -1.0f)) return v < 0.0f ? static_cast<std::int16_t>(-32767) : 0;  // NaN -> 0
+    if (v >= 1.0f) return 32767;
+    return static_cast<std::int16_t>(std::lround(v * 32767.0f));
 }
 
 } // namespace ds2x

@@ -20,12 +20,39 @@ public:
 
     bool open() override {
         client_ = win::vigem_alloc();
+        if (!client_) {
+            std::cerr << "could not allocate a ViGEm client (out of memory?)\n";
+            return false;
+        }
         if (win::vigem_connect(client_) != win::VIGEM_ERROR_NONE) {
             std::cerr << "could not connect to ViGEmBus ; is the driver installed?\n";
+            close();
             return false;
         }
         target_ = win::vigem_target_x360_alloc();
-        win::vigem_target_add(client_, target_);
+        if (!target_) {
+            std::cerr << "could not allocate the virtual pad\n";
+            close();
+            return false;
+        }
+        const int err = win::vigem_target_add(client_, target_);
+        if (err != win::VIGEM_ERROR_NONE) {
+            std::cerr << "ViGEmBus refused to create the virtual pad (error 0x" << std::hex << err
+                      << std::dec << ")\n";
+            win::vigem_target_free(target_);
+            target_ = nullptr;
+            close();
+            return false;
+        }
+        added_ = true;
+        // THIS is what makes game rumble reach the real pad: without registering
+        // for notifications ViGEmBus never tells us a game asked for vibration.
+        // the callback runs on a ViGEm thread, so rumble_handler must be quick and
+        // thread-safe (main() just stores the values and sends them from its loop).
+        const int nerr = win::vigem_target_x360_register_notification(target_, &VigemSink::on_rumble, this);
+        if (nerr != win::VIGEM_ERROR_NONE)
+            std::cerr << "warning: could not register for rumble (error 0x" << std::hex << nerr
+                      << std::dec << ") ; games won't be able to vibrate the pad\n";
         std::cout << "virtual Xbox 360 pad created\n";
         return true;
     }
@@ -33,23 +60,35 @@ public:
     void write(const XboxState& s) override {
         win::XUSB_REPORT r{};
         r.wButtons = s.buttons;  // our XboxButton bits match XUSB's wButtons layout
-        r.bLeftTrigger = static_cast<BYTE>(s.lt * 255.0f);
-        r.bRightTrigger = static_cast<BYTE>(s.rt * 255.0f);
-        r.sThumbLX = static_cast<SHORT>(s.lx * 32767.0f);
-        r.sThumbLY = static_cast<SHORT>(s.ly * 32767.0f);
-        r.sThumbRX = static_cast<SHORT>(s.rx * 32767.0f);
-        r.sThumbRY = static_cast<SHORT>(s.ry * 32767.0f);
+        r.bLeftTrigger = to_xusb_trigger(s.lt);
+        r.bRightTrigger = to_xusb_trigger(s.rt);
+        r.sThumbLX = to_xusb_axis(s.lx);
+        r.sThumbLY = to_xusb_axis(s.ly);
+        r.sThumbRX = to_xusb_axis(s.rx);
+        r.sThumbRY = to_xusb_axis(s.ry);
         win::vigem_target_x360_update(client_, target_, r);
     }
 
     void close() override {
-        if (target_) { win::vigem_target_remove(client_, target_); win::vigem_target_free(target_); target_ = nullptr; }
+        if (target_) {
+            if (added_) win::vigem_target_remove(client_, target_);
+            win::vigem_target_free(target_);
+            target_ = nullptr;
+            added_ = false;
+        }
         if (client_) { win::vigem_disconnect(client_); win::vigem_free(client_); client_ = nullptr; }
     }
 
 private:
+    static void DS2X_CALLBACK on_rumble(win::PVIGEM_CLIENT, win::PVIGEM_TARGET, win::UCHAR large,
+                                        win::UCHAR small, win::UCHAR /*led_number*/, win::PVOID user) {
+        auto* self = static_cast<VigemSink*>(user);
+        if (self && self->rumble_handler) self->rumble_handler(large, small);
+    }
+
     win::PVIGEM_CLIENT client_ = nullptr;
     win::PVIGEM_TARGET target_ = nullptr;
+    bool added_ = false;
 };
 
 std::unique_ptr<Sink> make_vigem_sink() { return std::make_unique<VigemSink>(); }

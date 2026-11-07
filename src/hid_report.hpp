@@ -35,7 +35,7 @@ struct PadState {
     std::uint8_t l2 = 0, r2 = 0;                          // analog triggers, 0..255
     std::uint8_t dpad = 8;                                // hat: 0=N 1=NE ... 7=NW, 8 = released
     std::uint16_t buttons = 0;
-    std::int16_t gx = 0, gy = 0, gz = 0;                  // gyro, signed; gz is yaw (turning left/right)
+    std::int16_t gx = 0, gy = 0, gz = 0;                  // gyro, signed, in sony's order: gx = pitch, gy = yaw, gz = roll
 };
 
 constexpr std::uint16_t SONY_VID = 0x054C;
@@ -49,8 +49,14 @@ std::string_view device_name(Device d);
 std::optional<PadState> parse_report(Device dev, Transport transport,
                                      const std::uint8_t* data, std::size_t len);
 
-// guess the transport from a HID device path ; on Windows the path contains
-// "BTH" for bluetooth devices. anything else is treated as cable.
+// guess the transport from a HID device path (a hint, not a guarantee: Windows
+// bluetooth HID paths carry the HID service uuid {00001124-...} and sometimes
+// "BTH"). anything else is treated as cable.
 Transport transport_from_path(const char* path);
+
+// the reliable way: look at a real report. 0x11 / 0x31 only exist over
+// bluetooth, a 64-byte 0x01 is USB, a 10-byte 0x01 is the BT "simple" report.
+// nullopt when the report doesn't say.
+std::optional<Transport> transport_from_report(const std::uint8_t* data, std::size_t len);
 
 } // namespace ds2x

@@ -16,6 +16,8 @@ struct Config {
     float max_zone = 1.0f;       // physical deflection that means "full" (worn sticks), <=1
     bool gyro = false;        // gyro steers the right stick
     float gyro_gain = 0.6f;   // how hard the gyro pushes the stick
+    bool gyro_invert_yaw = false;    // flip left/right gyro direction
+    bool gyro_invert_pitch = false;  // flip up/down gyro direction
     bool lightbar = false;    // set a light bar color at startup
     int player_led = 0;       // DualSense player LED 1..5, 0 = off
     int trigger_mode = 0;     // DualSense adaptive triggers: 0 off, 1 feedback, 2 weapon, 3 vibration
@@ -29,7 +31,14 @@ struct Config {
 };
 
 // parse a tiny ini file: [section] ignored, key=value, # or ; comments.
-// returns false only if the file exists but can't be read.
+// returns false if the file doesn't exist / can't be opened (defaults stay).
+// typos are reported with log_warn (unknown key, unparsable value) instead of
+// being silently ignored.
 bool load_config(const std::string& path, Config& cfg);
+
+// clamp every setting into a range the rest of the program can safely use
+// (e.g. hz 0 would divide by zero, deadzone 1.0 would flatten the sticks).
+// returns the number of values that had to be changed ; each one is logged.
+int sanitize_config(Config& cfg);
 
 } // namespace ds2x

@@ -26,6 +26,10 @@ int xbox_button_bit(const std::string& name) {
     for (int i = 0; i < 15; ++i) if (name == kXboxNames[i]) return kXboxBits[i];
     return 0;
 }
+const char* xbox_button_name(std::uint16_t bit) {
+    for (int i = 0; i < 15; ++i) if (kXboxBits[i] == bit) return kXboxNames[i];
+    return "";
+}
 const char* ps_button_name(int index) {
     return (index >= 0 && index < 14) ? kPsNames[index] : "";
 }

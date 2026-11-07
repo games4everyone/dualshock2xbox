@@ -97,20 +97,49 @@ static std::optional<PadState> parse_dualsense(const std::uint8_t* d, std::size_
     return s;
 }
 
+// case-insensitive substring search, no allocations
+static bool contains_nocase(const char* hay, const char* needle) {
+    for (; *hay; ++hay) {
+        const char* h = hay;
+        const char* n = needle;
+        while (*h && *n && ((*h | 32) == (*n | 32))) { ++h; ++n; }
+        if (!*n) return true;
+    }
+    return false;
+}
+
 Transport transport_from_path(const char* path) {
     if (!path) return Transport::Usb;
-    for (const char* p = path; *p; ++p) {
-        // case-insensitive "bth" anywhere in the path means bluetooth
-        if ((*p == 'b' || *p == 'B') && (p[1] == 't' || p[1] == 'T') &&
-            (p[2] == 'h' || p[2] == 'H'))
+    // a hint only ; the report id / length of the first real report is the
+    // ground truth (see transport_from_report). windows bluetooth HID paths
+    // usually look like  \\?\hid#{00001124-0000-1000-8000-00805f9b34fb}_vid&...
+    // (classic HID service uuid), and BLE ones use {00001812-...}; some stacks
+    // also put "bth" / "bthenum" in there.
+    return (contains_nocase(path, "bth") || contains_nocase(path, "00001124-0000-1000") ||
+            contains_nocase(path, "00001812-0000-1000"))
+               ? Transport::Bluetooth
+               : Transport::Usb;
+}
+
+std::optional<Transport> transport_from_report(const std::uint8_t* data, std::size_t len) {
+    if (!data || len == 0) return std::nullopt;
+    switch (data[0]) {
+        case 0x11:  // DS4 bluetooth full report
+        case 0x31:  // DualSense bluetooth full report
             return Transport::Bluetooth;
+        case 0x01:
+            // USB full reports are 64 bytes ; the bluetooth "simple" report is 10
+            if (len >= 32) return Transport::Usb;
+            if (len >= 9) return Transport::Bluetooth;
+            return std::nullopt;
+        default:
+            return std::nullopt;
     }
-    return Transport::Usb;
 }
 
 std::optional<PadState> parse_report(Device dev, Transport transport,
                                      const std::uint8_t* data, std::size_t len) {
-    if (len == 0) return std::nullopt;
+    if (!data || len == 0) return std::nullopt;
     const std::uint8_t rid = data[0];
 
     if (dev == Device::DualShock4) {
@@ -119,14 +148,15 @@ std::optional<PadState> parse_report(Device dev, Transport transport,
         return std::nullopt;
     }
 
-    // DualSense
-    if (rid == 0x31 && transport == Transport::Bluetooth)
-        return parse_dualsense(data, len, 2);             // BT full report, +1 shift
+    // DualSense. The report id decides the layout; `transport` is only a tiebreaker
+    // for the one ambiguous case below, so a wrong guess from the device path can't
+    // make a bluetooth pad look dead.
+    if (rid == 0x31) return parse_dualsense(data, len, 2);  // BT full report, +1 shift
     if (rid == 0x01) {
-        if (transport == Transport::Bluetooth)
-            // over BT the DualSense starts in "simple" mode, which is literally
-            // the old DualShock 4 report. sony reused the paperwork.
-            return parse_ds4(data, len, 1);
+        // over BT the DualSense starts in "simple" mode, which is literally the
+        // old DualShock 4 report (10 bytes). sony reused the paperwork. a real
+        // USB report is 64 bytes, so a short 0x01 is simple mode whatever the hint.
+        if (transport == Transport::Bluetooth || len < 32) return parse_ds4(data, len, 1);
         return parse_dualsense(data, len, 1);
     }
     return std::nullopt;

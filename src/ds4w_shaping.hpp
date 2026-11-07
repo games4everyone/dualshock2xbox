@@ -10,6 +10,9 @@ namespace ds2x {
 // deadzone), then max-zone (a worn stick that only reaches e.g. 0.9 still
 // hits full deflection).
 //
+// Since the port, the steps run on the stick's magnitude (the vector) rather than
+// on each axis separately, so a diagonal or nearly-straight push keeps its angle.
+//
 // All values are fractions of full deflection: dz in [0,1], anti in [0,1),
 // maxzone in (0,1] ; maxzone = 1.0 disables it.
 //

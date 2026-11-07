@@ -10,6 +10,7 @@ add_library(ds2x_core STATIC
     src/mapping.cpp
     src/ds4w_shaping.cpp
     src/names.cpp
+    src/gyro.cpp
     src/output_report.cpp
     src/config.cpp
     src/profiles.cpp
@@ -18,6 +19,10 @@ add_library(ds2x_core STATIC
 )
 if(WIN32)
     target_sources(ds2x_core PRIVATE src/win_dynload.cpp)
+    # win_dynload.cpp is wrapped in #ifdef DS2X_WINDOWS, so the *library* needs the
+    # define too ; with it set only on the exe, this file compiled to nothing and
+    # win::load() / win::hid_init were undefined at link time
+    target_compile_definitions(ds2x_core PRIVATE DS2X_WINDOWS=1)
 endif()
 target_include_directories(ds2x_core PUBLIC src)
 
@@ -48,6 +53,7 @@ if(DS2X_BUILD_TESTS)
         tests/test_output_report.cpp
         tests/test_config.cpp
         tests/test_test_mode.cpp
+        tests/test_gyro.cpp
     )
     target_link_libraries(ds2x_tests PRIVATE ds2x_core)
     add_test(NAME ds2x_tests COMMAND ds2x_tests)
