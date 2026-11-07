@@ -50,9 +50,11 @@
 </head>
 <body>
 <header>
-  <h1><a href="index.html">dualshock2xbox</a></h1>
+  <h1>dualshock2xbox</h1>
   <p class="tag">Play Windows games with a DualShock 4 or DualSense (PS5) controller.</p>
-  <nav><a href="index.html" class="cur">Home</a> <a href="#" data-page="page-start">Start</a> <a href="#" data-page="page-features">Features</a> <a href="#" data-page="page-mapping">Mapping</a> <a href="#" data-page="page-settings">Settings</a> <a href="#" data-page="page-docs">Docs</a> <a href="#" data-page="page-faq">FAQ</a></nav>
+  <nav>
+    <a href="#" data-page="page-home" class="cur">Home</a> <a href="#" data-page="page-start">Start</a> <a href="#" data-page="page-features">Features</a> <a href="#" data-page="page-mapping">Mapping</a> <a href="#" data-page="page-settings">Settings</a> <a href="#" data-page="page-docs">Docs</a> <a href="#" data-page="page-faq">FAQ</a>
+  </nav>
 </header>
 <div class="wrap">
   <div class="dlrow" id="home-buttons">
@@ -73,10 +75,8 @@
       <li>Built-in test page so you can try it with just your keyboard</li>
     </ul>
   </div>
-<footer>dualshock2xbox; a hobby project, use at your own risk.</footer>
-</div>
-<!-- embedded page: start.html -->
-<div hidden id="page-start">
+<!-- embedded: start -->
+<div class="page" hidden id="page-start">
 
     <h2>Quick start</h2>
     <pre>1. Grab dualshock2xbox-setup.exe from the Releases page and run it
@@ -95,8 +95,8 @@
     <p><code>dualshock2xbox.exe --safe</code> only ever reads the pad, never writes
     to it.</p>
   </div>
-<!-- embedded page: features.html -->
-<div hidden id="page-features">
+<!-- embedded: features -->
+<div class="page" hidden id="page-features">
 
     <h2>Features</h2>
     <h3>Controllers</h3>
@@ -138,8 +138,8 @@
       on exit</li>
     </ul>
   </div>
-<!-- embedded page: mapping.html -->
-<div hidden id="page-mapping">
+<!-- embedded: mapping -->
+<div class="page" hidden id="page-mapping">
 
     <h2>Default button mapping</h2>
     <table>
@@ -154,8 +154,8 @@
     </table>
     <p>Change any of this in <code>settings.ini</code> or a file under <code>profiles/</code>.</p>
   </div>
-<!-- embedded page: settings.html -->
-<div hidden id="page-settings">
+<!-- embedded: settings -->
+<div class="page" hidden id="page-settings">
 
     <h2>Settings</h2>
     <p>Edit <code>settings.ini</code> next to the exe; every line is commented, so the file
@@ -170,8 +170,8 @@
     <p>Run with <code>dualshock2xbox.exe --profile example-fps</code> to use
     <code>profiles/example-fps.ini</code> instead of the default mapping.</p>
   </div>
-<!-- embedded page: docs.html -->
-<div hidden id="page-docs">
+<!-- embedded: docs -->
+<div class="page" hidden id="page-docs">
 
     <h2>Documentation</h2>
 
@@ -236,8 +236,8 @@ cmake --build build --config Release</pre>
     <p>GPL-3.0; stick shaping ported from
     <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a> (also GPL-3.0).</p>
   </div>
-<!-- embedded page: faq.html -->
-<div hidden id="page-faq">
+<!-- embedded: faq -->
+<div class="page" hidden id="page-faq">
 
     <h2>FAQ</h2>
 
@@ -303,22 +303,22 @@ yaw turns the right stick and pitch looks up/down, like a mouse.</p>
 ported from <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a>
 (also GPL-3.0); see NOTICE.txt in the download.</p>
   </div>
+<footer>dualshock2xbox; a hobby project, use at your own risk.</footer>
 </div>
 <script>
 (function () {
+  var pages = document.querySelectorAll('.wrap > .page');
   var links = document.querySelectorAll('nav a[data-page]');
   function show(id) {
-    document.getElementById('page-home').style.display = (id === 'page-home') ? '' : 'none';
+    for (var i = 0; i < pages.length; i++) pages[i].hidden = (pages[i].id !== id);
     document.getElementById('home-buttons').style.display = (id === 'page-home') ? '' : 'none';
-    var divs = document.querySelectorAll('div[id^="page-"]');
-    for (var i = 0; i < divs.length; i++) divs[i].hidden = (divs[i].id !== id);
+    for (var j = 0; j < links.length; j++) links[j].classList.toggle('cur', links[j].getAttribute('data-page') === id);
     window.scrollTo(0, 0);
   }
   for (var i = 0; i < links.length; i++) {
     links[i].addEventListener('click', function (e) { e.preventDefault(); show(this.getAttribute('data-page')); });
   }
-  document.querySelector('nav a[href="index.html"]').addEventListener('click', function (e) { e.preventDefault(); show('page-home'); });
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fe70e9f210b1b',t:'MTc5NDA5MTg4NQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fe70e9f210b1b',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fed8b6918dd84',t:'MTc5NDA5MjE1MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fed8b6918dd84',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
