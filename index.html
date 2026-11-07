@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>dualshock2xbox; Home</title>
+<title>dualshock2xbox</title>
 <style>
   :root { --blue: #0b3d91; --blue2: #1565c0; --ink: #eaf2ff; --muted: #b9cff2; }
   html, body { margin: 0; padding: 0; }
@@ -73,8 +73,235 @@
       <li>Built-in test page so you can try it with just your keyboard</li>
     </ul>
   </div>
-  
 <footer>dualshock2xbox; a hobby project, use at your own risk.</footer>
 </div>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fba487f9e128c',t:'MTc5NDA5MDA1MQ=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fba487f9e128c',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<!-- embedded page: start.html -->
+<div hidden id="page-start">
+
+    <h2>Quick start</h2>
+    <pre>1. Grab dualshock2xbox-setup.exe from the Releases page and run it
+   as Administrator. It can install the ViGEmBus driver for you.
+2. Plug in your controller (USB) or pair it (Bluetooth).
+3. Double-click run.bat. Done; games now see an Xbox 360 pad.
+   Close the window to stop.</pre>
+    <h3>Did it work?</h3>
+    <p>Run <code>dualshock2xbox.exe --check</code> and it'll tell you in plain words
+    whether it sees the driver and your pad.</p>
+    <h3>No controller around?</h3>
+    <p><code>dualshock2xbox.exe --test-mode</code> opens a little web page on your
+    machine where the keyboard pretends to be a DualShock. Handy for trying a
+    profile before touching a real pad.</p>
+    <h3>Paranoid mode</h3>
+    <p><code>dualshock2xbox.exe --safe</code> only ever reads the pad, never writes
+    to it.</p>
+  </div>
+<!-- embedded page: features.html -->
+<div hidden id="page-features">
+
+    <h2>Features</h2>
+    <h3>Controllers</h3>
+    <ul>
+      <li>DualShock 4 and DualSense (PS5), over USB or Bluetooth</li>
+      <li>Automatic reconnect when the pad wakes up or re-pairs</li>
+      <li>Transport is detected from the report itself, not just the device path,
+      so a Bluetooth DualSense can't look dead</li>
+      <li>Full Bluetooth HID handshake, not just the basic report</li>
+    </ul>
+    <h3>Safety and sanity</h3>
+    <ul>
+      <li>Test web GUI binds to 127.0.0.1 only and rejects foreign Host/Origin headers</li>
+      <li>Config and CLI values are clamped with warnings; typos and bad values no
+      longer crash or get silently ignored</li>
+    </ul>
+    <h3>Mapping and profiles</h3>
+    <ul>
+      <li>Every button remappable in <code>settings.ini</code> or a profile file</li>
+      <li>Profiles live in <code>profiles/</code>; switch with <code>--profile name</code></li>
+    </ul>
+    <h3>Stick feel</h3>
+    <ul>
+      <li>Shaping works on the stick vector, so diagonal pushes keep their angle and
+      corners stay reachable; deadzone, anti-deadzone and max-zone ported from
+      DS4Windows (GPL-3.0, see NOTICE.txt)</li>
+      <li>Optional gyro aiming on DualSense with auto-calibration: the bias is only
+      re-estimated when the pad has been still, so real motion is never calibrated
+      away; <code>gyro_invert_yaw</code> / <code>gyro_invert_pitch</code> if a
+      direction feels backwards</li>
+      <li>Input queue is drained to the newest report with a 1 ms timer, so inputs
+      do not arrive stale</li>
+    </ul>
+    <h3>Feedback</h3>
+    <ul>
+      <li>Game rumble reaches the real pad (the ViGEm callback is registered now)</li>
+      <li>Light bar color, player LEDs, DualSense adaptive trigger effects</li>
+      <li>All re-sent after a reconnect; rumble zeroed and the virtual pad removed
+      on exit</li>
+    </ul>
+  </div>
+<!-- embedded page: mapping.html -->
+<div hidden id="page-mapping">
+
+    <h2>Default button mapping</h2>
+    <table>
+      <tr><th>DualShock / DualSense</th><th>Xbox 360</th></tr>
+      <tr><td>Cross / Circle / Square / Triangle</td><td>A / B / X / Y</td></tr>
+      <tr><td>L1 / R1</td><td>LB / RB</td></tr>
+      <tr><td>L2 / R2</td><td>LT / RT (analog)</td></tr>
+      <tr><td>Share / Create</td><td>Back</td></tr>
+      <tr><td>Options</td><td>Start</td></tr>
+      <tr><td>PS</td><td>Guide</td></tr>
+      <tr><td>L3 / R3, D-pad, sticks</td><td>same</td></tr>
+    </table>
+    <p>Change any of this in <code>settings.ini</code> or a file under <code>profiles/</code>.</p>
+  </div>
+<!-- embedded page: settings.html -->
+<div hidden id="page-settings">
+
+    <h2>Settings</h2>
+    <p>Edit <code>settings.ini</code> next to the exe; every line is commented, so the file
+    explains itself.</p>
+    <h3>Common keys</h3>
+    <ul>
+      <li><code>anti_deadzone</code>, <code>max_zone</code>; stick shaping (DS4Windows-style)</li>
+      <li><code>profile</code>; which file in <code>profiles/</code> to load</li>
+      <li><code>gyro</code>, <code>gyro_invert_yaw</code>, <code>gyro_invert_pitch</code>; DualSense gyro aiming and axis flips</li>
+    </ul>
+    <h3>Profiles</h3>
+    <p>Run with <code>dualshock2xbox.exe --profile example-fps</code> to use
+    <code>profiles/example-fps.ini</code> instead of the default mapping.</p>
+  </div>
+<!-- embedded page: docs.html -->
+<div hidden id="page-docs">
+
+    <h2>Documentation</h2>
+
+    <h3>What it does</h3>
+    <p>Reads your PlayStation controller's raw HID reports, maps them onto the Xbox
+    layout, and presents a virtual Xbox 360 pad through the ViGEmBus driver. Games
+    just see an Xbox pad.</p>
+    <pre>DualShock 4 / DualSense --HID--> parse report --> map to Xbox --> virtual X360 pad --> game</pre>
+
+    <h3>Install</h3>
+    <p>Download <code>dualshock2xbox-setup.exe</code> from Releases, run it as
+    Administrator. It installs to Program Files, adds Start Menu and Desktop
+    shortcuts, and can install the ViGEmBus driver for you (via winget). There is
+    an optional "add to PATH" checkbox; your original PATH is saved and restored
+    when you uninstall.</p>
+
+    <h3>Use</h3>
+    <pre>1. Plug in or Bluetooth-pair the controller.
+2. Double-click run.bat (or the Start Menu shortcut).
+3. Play. Close the window to stop.</pre>
+
+    <h3>Command line</h3>
+    <table>
+      <tr><th>Flag</th><th>What it does</th></tr>
+      <tr><td><code>--check</code></td><td>Says in plain words whether the driver and a pad were found</td></tr>
+      <tr><td><code>--test-mode</code></td><td>Web GUI on localhost:8080; your keyboard acts as a DualShock</td></tr>
+      <tr><td><code>--port N</code></td><td>Change the test-mode port</td></tr>
+      <tr><td><code>--safe</code></td><td>Read-only mode; nothing is ever written to the pad</td></tr>
+      <tr><td><code>--dry-run</code></td><td>Translate scripted input without hardware</td></tr>
+      <tr><td><code>--profile name</code></td><td>Load <code>profiles/name.ini</code></td></tr>
+      <tr><td><code>--list-profiles</code></td><td>Show available profiles</td></tr>
+      <tr><td><code>--hz N</code></td><td>Poll rate (default 250, the native X360 rate)</td></tr>
+      <tr><td><code>--deadzone F</code></td><td>Stick deadzone 0..1 (default 0.08)</td></tr>
+      <tr><td><code>--list</code></td><td>Show detected pads</td></tr>
+    </table>
+
+    <h3>settings.ini</h3>
+    <p>Lives next to the exe; every line is commented. Highlights:</p>
+    <ul>
+      <li><code>hz</code>, <code>deadzone</code>, <code>anti_deadzone</code>, <code>max_zone</code>; poll rate and stick shaping</li>
+      <li><code>gyro</code>, <code>gyro_invert_yaw</code>, <code>gyro_invert_pitch</code>; DualSense gyro aiming</li>
+      <li><code>lightbar=r,g,b</code>, <code>player_led=1..5</code>; pad cosmetics at startup</li>
+      <li><code>trigger_mode=1..3</code> plus <code>trigger_start</code>, <code>trigger_strength</code>, <code>trigger_freq</code>; DualSense adaptive triggers</li>
+      <li><code>remap_cross=b</code> style lines; remap any button</li>
+    </ul>
+    <p>Bad values are clamped with a warning in the log; typos are reported, never
+    silently ignored.</p>
+
+    <h3>Building from source</h3>
+    <pre>cmake -B build
+cmake --build build --config Release</pre>
+    <p>The parsing and mapping code is portable C++ with no dependencies and the
+    test suite runs anywhere; the Windows parts need hidapi and ViGEmClient
+    (e.g. <code>vcpkg install hidapi:x64-windows vigemclient:x64-windows</code>).</p>
+
+    <h3>Safety</h3>
+    <p>The tool only sends standard HID output reports (rumble, LED, triggers), the
+    same packets games send; there is no firmware code path, so it cannot brick a
+    pad. Use <code>--safe</code> for a strictly read-only first test.</p>
+
+    <h3>License</h3>
+    <p>GPL-3.0; stick shaping ported from
+    <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a> (also GPL-3.0).</p>
+  </div>
+<!-- embedded page: faq.html -->
+<div hidden id="page-faq">
+
+    <h2>FAQ</h2>
+
+    <h3>Will this brick my controller?</h3>
+    <p>No; it only sends standard HID output reports (rumble, LED, trigger
+effects), exactly the same packets games send. There is no firmware or
+flash code path at all. <code>--safe</code> is strictly read-only if you
+want to be extra careful.</p>
+
+    <h3>Does Bluetooth work?</h3>
+    <p>Yes, on both DualShock 4 and DualSense, including the full-report
+handshake that switches the pad from the stripped-down Bluetooth report
+to the complete one. Reconnect after sleep or a drop is automatic.</p>
+
+    <h3>Can I use two controllers at once?</h3>
+    <p>One pad per running instance; start a second copy of the exe for a
+second pad. Each instance grabs the first controller it finds, so with
+two pads plugged in, start two instances.</p>
+
+    <h3>Is there input lag?</h3>
+    <p>The default poll rate is 250 Hz, the native Xbox 360 rate, so the
+translator adds well under a millisecond. You can raise it with
+<code>--hz N</code> if your USB port can keep up.</p>
+
+    <h3>Why does my antivirus complain?</h3>
+    <p>Tools that create virtual HID devices sometimes trip generic
+heuristics. The exe is built from the source in this repo; you can verify
+it yourself or rebuild it. The installer only writes to Program Files,
+the Start Menu and one registry PATH entry.</p>
+
+    <h3>How do I uninstall?</h3>
+    <p>Run the uninstaller from the Start Menu (or Settings > Apps), then
+remove the ViGEmBus driver from Device Manager if you no longer need it.
+The uninstaller also offers to restore your original PATH entry.</p>
+
+    <h3>Linux or macOS?</h3>
+    <p>The distribution is Windows-only because ViGEmBus is Windows-only,
+but the report parsing and mapping code are portable C++ and the test
+suite builds and runs anywhere.</p>
+
+    <h3>Does the touchpad work?</h3>
+    <p>The touchpad click has no Xbox equivalent by default, but you can
+remap it in <code>settings.ini</code> with <code>remap_touchpad=rs</code>
+to give it a job.</p>
+
+    <h3>What about gyro aiming?</h3>
+    <p>On DualSense, set <code>gyro=1</code> in <code>settings.ini</code>;
+yaw turns the right stick and pitch looks up/down, like a mouse.</p>
+
+    <h3>Why does the camera drift when I'm not touching the pad?</h3>
+    <p>That's gyro bias, and it's normal; every pad has a small constant offset.
+    The auto-calibrator only re-estimates it when the pad has been still for a
+    moment, so it removes the drift without eating real motion. If a direction
+    feels backwards, flip <code>gyro_invert_yaw</code> / <code>gyro_invert_pitch</code>.</p>
+
+    <h3>Is the test web page safe to leave running?</h3>
+    <p>Yes; it binds to 127.0.0.1 only and rejects requests whose Host or Origin
+    isn't local, so other devices on your network (or a random web page in your
+    browser) can't press buttons on your virtual pad.</p>
+
+    <h3>What is the license?</h3>
+    <p>GPL-3.0. The stick shaping (deadzone / anti-deadzone / max-zone) is
+ported from <a href="https://github.com/hbashton/DS4Windows">DS4Windows</a>
+(also GPL-3.0); see NOTICE.txt in the download.</p>
+  </div>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a56fd5499bc2e022',t:'MTc5NDA5MTE1OA=='};var l=window.parent.location,o;try{o=new URL(l.origin).origin}catch(e){try{o=new URL(new URL(l.href).origin).origin}catch(e){o=''}}var u='/cdn-cgi/challenge-platform/scripts/jsd/main.js?ray=a56fd5499bc2e022',a=document.createElement('script');a.src=o?new URL(u,o).href:u;document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
