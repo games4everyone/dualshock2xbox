@@ -53,5 +53,5 @@ Requirements (Windows)
 - ViGEmBus (https://github.com/ViGEm/ViGEmBus/releases) driver installed
 
 Build / Run / Options / Project layout / Safety / Notes: see the full file in
-the repo ; stick shaping is ported from DS4Windows (GPL-3.0), so this
+the repo; stick shaping is ported from DS4Windows (GPL-3.0), so this
 project is GPL-3.0 too. See NOTICE.txt.
